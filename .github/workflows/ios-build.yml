@@ -10,6 +10,9 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-14
@@ -22,15 +25,40 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+      - name: Show available Xcode versions
+        run: ls /Applications | grep Xcode
+
+      - name: Resolve Swift Package dependencies
+        run: |
+          set -o pipefail
+          xcodebuild -resolvePackageDependencies \
+            -project ScreenMirror.xcodeproj \
+            -scheme ScreenMirrorSender \
+            2>&1 | tee resolve.log
 
       - name: Build for Simulator (no signing needed)
         run: |
+          set -o pipefail
           xcodebuild \
             -project ScreenMirror.xcodeproj \
             -scheme ScreenMirrorSender \
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build 2>&1 | tee build.log
+
+      - name: Publish log tail on failure
+        if: failure()
+        run: |
+          mkdir -p ci-logs
+          { echo "=== resolve.log (tail) ==="; tail -n 150 resolve.log 2>/dev/null; \
+            echo "=== build.log (tail) ==="; tail -n 300 build.log 2>/dev/null; } > ci-logs/last-failure.log
+          git config user.email "ci@screenmirror.local"
+          git config user.name "CI log publisher"
+          git fetch origin ci-logs || true
+          git checkout -B ci-logs
+          mkdir -p ci-logs-branch
+          cp ci-logs/last-failure.log ci-logs-branch/last-failure.log
+          git add ci-logs-branch/last-failure.log
+          git commit -m "CI failure log from run ${{ github.run_id }}"
+          git push --force origin ci-logs
