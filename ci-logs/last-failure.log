@@ -1,0 +1,13 @@
+=== resolve.log (tail) ===
+Command line invocation:
+    /Applications/Xcode_15.4.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -project ScreenMirror.xcodeproj -scheme ScreenMirrorSender
+
+User defaults from command line:
+    IDEPackageSupportUseBuiltinSCM = YES
+
+2026-10-04 09:55:54.960 xcodebuild[1181:5753] Writing error result bundle to /var/folders/s6/5hzmn6lx4dz5nxs7k_0slzph0000gn/T/ResultBundle_2026-04-10_09-55-0054.xcresult
+xcodebuild: error: Unable to read project 'ScreenMirror.xcodeproj'.
+	Reason: The project ‘ScreenMirror’ cannot be opened because it is in a future Xcode project file format (77). Adjust the project format using a compatible version of Xcode to allow it to be opened by this version of Xcode.
+
+
+=== build.log (tail) ===
