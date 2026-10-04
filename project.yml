@@ -50,6 +50,7 @@ targets:
       - path: Extension
       - path: Shared/FrameTransport.swift
       - path: Shared/AppGroup.swift
+      - path: Shared/PCMConverter.swift
     info:
       path: Extension/Info.plist
       properties:
