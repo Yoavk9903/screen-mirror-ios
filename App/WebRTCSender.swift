@@ -36,7 +36,9 @@ final class WebRTCSender: NSObject {
         config.sdpSemantics = .unifiedPlan
 
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
-        let pc = factory.peerConnection(with: config, constraints: constraints, delegate: self)
+        guard let pc = factory.peerConnection(with: config, constraints: constraints, delegate: self) else {
+            return
+        }
         peerConnection = pc
 
         let source = factory.videoSource()
