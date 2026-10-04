@@ -55,30 +55,33 @@ jobs:
 
       - name: Publish log tail
         if: always()
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
           set -x
-          { echo "=== resolve.log (tail) ==="; tail -n 150 resolve.log 2>/dev/null; \
-            echo "=== build.log (tail) ==="; tail -n 300 build.log 2>/dev/null; } > /tmp/last-failure.log
+          CURL="curl -s --max-time 20"
+
+          { echo "=== resolve.log (tail) ==="; tail -n 80 resolve.log 2>/dev/null; \
+            echo "=== build.log (tail) ==="; tail -n 150 build.log 2>/dev/null; } > /tmp/last-failure.log
 
           REPO="${{ github.repository }}"
           PATH_IN_REPO="ci-logs/last-failure.log"
           CONTENT_B64=$(base64 < /tmp/last-failure.log | tr -d '\n')
 
-          MAIN_SHA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+          MAIN_SHA=$($CURL -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$REPO/git/ref/heads/main" | jq -r '.object.sha')
-          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" \
+          $CURL -X POST -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$REPO/git/refs" \
-            -d "{\"ref\":\"refs/heads/ci-logs\",\"sha\":\"$MAIN_SHA\"}" > /dev/null || true
+            -d "{\"ref\":\"refs/heads/ci-logs\",\"sha\":\"$MAIN_SHA\"}" > /dev/null
 
-          EXISTING_SHA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+          EXISTING_SHA=$($CURL -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$REPO/contents/$PATH_IN_REPO?ref=ci-logs" \
-            | (jq -r '.sha // empty' 2>/dev/null || true))
+            | jq -r '.sha // empty')
 
           if [ -n "$EXISTING_SHA" ]; then
             BODY=$(jq -n --arg msg "CI failure log from run ${{ github.run_id }}" \
@@ -90,10 +93,11 @@ jobs:
               '{message:$msg, content:$content, branch:$branch}')
           fi
 
-          curl -s -X PUT -H "Authorization: Bearer $GH_TOKEN" \
+          echo "$BODY" > /tmp/body.json
+          $CURL -X PUT -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$REPO/contents/$PATH_IN_REPO" \
-            -d "$BODY"
+            -d @/tmp/body.json
 
           echo "log-publish step finished (best-effort; does not fail the job)"
           exit 0
