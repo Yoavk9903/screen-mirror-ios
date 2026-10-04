@@ -1,0 +1,36 @@
+name: iOS build
+
+# Builds the iPhone app in the cloud, on a GitHub-hosted Mac — no physical/rented Mac
+# needed. First milestone: compile for the Simulator only (no Apple Developer signing
+# required yet). Once there's a paid Apple Developer account + signing certificate, this
+# workflow will be extended to archive and upload a real IPA to TestFlight.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Build for Simulator (no signing needed)
+        run: |
+          xcodebuild \
+            -project ScreenMirror.xcodeproj \
+            -scheme ScreenMirrorSender \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build

@@ -1,0 +1,85 @@
+name: ScreenMirror
+options:
+  bundleIdPrefix: com.screenmirror
+  deploymentTarget:
+    iOS: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""   # filled in once we have an Apple Developer Team ID
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  ScreenMirrorSender:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Shared
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Screen Mirror
+        UILaunchStoryboardName: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        NSBonjourServices:
+          - _screenmirror._tcp
+        NSLocalNetworkUsageDescription: "האפליקציה מחפשת מכשירי טלוויזיה ברשת הביתית שלך כדי לשדר אליהם את המסך."
+        NSMicrophoneUsageDescription: "נדרש כדי לשדר קול מהמכשיר, במידת הצורך."
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: App/ScreenMirrorSender.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.screenmirror.shared
+    dependencies:
+      - target: BroadcastExtension
+      - package: WebRTC
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.screenmirror.sender
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+
+  BroadcastExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extension
+      - path: Shared/FrameTransport.swift
+      - path: Shared/AppGroup.swift
+    info:
+      path: Extension/Info.plist
+      properties:
+        CFBundleDisplayName: Screen Mirror
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
+          RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer
+    entitlements:
+      path: Extension/BroadcastExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.screenmirror.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.screenmirror.sender.BroadcastExtension
+        TARGETED_DEVICE_FAMILY: "1"
+
+packages:
+  WebRTC:
+    url: https://github.com/stasel/WebRTC
+    from: 120.0.0
+
+schemes:
+  ScreenMirrorSender:
+    build:
+      targets:
+        ScreenMirrorSender: all
+        BroadcastExtension: all
+    run:
+      config: Debug
+    archive:
+      config: Release
