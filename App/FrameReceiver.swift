@@ -17,13 +17,14 @@ final class FrameReceiver {
         let path = AppGroup.socketPath
         try? FileManager.default.removeItem(atPath: path) // stale socket from a previous run
 
-        guard let listener = try? NWListener(using: .tcp) else { return }
-        // NWListener doesn't have a direct "bind to unix path" convenience initializer in
-        // all SDK versions; this uses the private-API-free documented approach via
-        // NWParameters + NWEndpoint when available. If this needs adjusting once we can
-        // actually build against a real SDK, the fallback is a short-lived TCP server on
-        // 127.0.0.1 instead of a Unix socket — functionally identical for this purpose,
-        // still fully local to the device.
+        // A plain NWListener(using: .tcp) only listens on an ephemeral TCP port — it does
+        // NOT bind to AppGroup.socketPath. The extension side (SampleHandler.swift) connects
+        // via NWConnection(to: NWEndpoint.unix(path:), using: .tcp), so this side must bind
+        // to that same Unix-domain path by setting requiredLocalEndpoint on the parameters;
+        // the "using: .tcp" transport is otherwise ignored for a Unix-domain endpoint.
+        let params = NWParameters.tcp
+        params.requiredLocalEndpoint = NWEndpoint.unix(path: path)
+        guard let listener = try? NWListener(using: params) else { return }
         self.listener = listener
         listener.newConnectionHandler = { [weak self] connection in
             self?.accept(connection)

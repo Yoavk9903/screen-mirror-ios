@@ -42,10 +42,13 @@ to eventually run it on a real iPhone / submit to TestFlight, which does need:
 
 ## Current status / what's NOT done yet
 
-- Not yet tested against a real compiler — written without access to Xcode. Expect some
-  build-error iteration once CI actually compiles it for the first time (API names for
-  `NWListener` unix-socket binding in particular are flagged as uncertain in
-  `FrameReceiver.swift` and may need adjusting once real compiler errors are visible).
+- The project builds cleanly in CI (compiles for the iOS Simulator, unsigned). `FrameReceiver.swift`
+  binds its `NWListener` to the Unix-domain socket path via `NWParameters.requiredLocalEndpoint`,
+  matching how the extension connects (`NWConnection(to: NWEndpoint.unix(path:), using: .tcp)`
+  in `Extension/SampleHandler.swift`).
+- Not yet run on a real device or Simulator — a compile-only CI build doesn't exercise app
+  logic at runtime, so behavior (socket handshake, frame framing, WebRTC negotiation) is
+  still unverified end-to-end. That needs a signed build via TestFlight (see below).
 - No TestFlight/signing wiring yet (needs the Apple Developer account first).
 - Video path copies raw BGRA frames across the process boundary uncompressed — fine for
   getting a first working version, but worth revisiting (e.g. downscaling, or IOSurface
