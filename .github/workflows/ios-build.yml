@@ -52,6 +52,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set +e
           set -x
           { echo "=== resolve.log (tail) ==="; tail -n 150 resolve.log 2>/dev/null; \
             echo "=== build.log (tail) ==="; tail -n 300 build.log 2>/dev/null; } > /tmp/last-failure.log
@@ -87,3 +88,6 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$REPO/contents/$PATH_IN_REPO" \
             -d "$BODY"
+
+          echo "log-publish step finished (best-effort; does not fail the job)"
+          exit 0
