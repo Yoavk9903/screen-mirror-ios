@@ -101,3 +101,107 @@ jobs:
 
           echo "log-publish step finished (best-effort; does not fail the job)"
           exit 0
+
+  testflight:
+    # Archives a real signed build and uploads it to TestFlight. Stays dormant until the
+    # Apple Developer account exists and the following are added under this repo's
+    # Settings -> Secrets and variables -> Actions:
+    #   APPLE_TEAM_ID (as a "Variable", not a secret - it's not sensitive, just needs to
+    #                  be readable in this file's `if:` condition below)
+    #                  - the 10-character Team ID from developer.apple.com
+    #   APPSTORE_API_KEY_ID        - App Store Connect API key ID (secret)
+    #   APPSTORE_API_ISSUER_ID     - App Store Connect API issuer ID
+    #   APPSTORE_API_KEY_P8        - the contents of the downloaded .p8 private key file
+    #   SIGNING_CERTIFICATE_P12    - base64-encoded .p12 (Distribution certificate + key)
+    #   SIGNING_CERTIFICATE_PASSWORD - password used when exporting that .p12
+    #   SIGNING_PROVISIONING_PROFILE - base64-encoded .mobileprovision (App Store profile)
+    # Until APPLE_TEAM_ID is set, this job is skipped entirely so it never blocks or fails
+    # the Simulator build above.
+    needs: build
+    if: ${{ needs.build.result == 'success' && vars.APPLE_TEAM_ID != '' }}
+    runs-on: macos-14
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project with real Team ID
+        run: |
+          sed -i '' "s/DEVELOPMENT_TEAM: \"\"/DEVELOPMENT_TEAM: \"${APPLE_TEAM_ID}\"/" project.yml
+          xcodegen generate
+
+      - name: Select the newest available Xcode
+        run: |
+          LATEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -n 1)
+          sudo xcode-select -s "$LATEST"
+          xcodebuild -version
+
+      - name: Import signing certificate and provisioning profile
+        env:
+          CERT_P12: ${{ secrets.SIGNING_CERTIFICATE_P12 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+          PROFILE: ${{ secrets.SIGNING_PROVISIONING_PROFILE }}
+        run: |
+          set -e
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+          cp "$RUNNER_TEMP/profile.mobileprovision" ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Archive
+        run: |
+          set -o pipefail
+          xcodebuild -project ScreenMirror.xcodeproj \
+            -scheme ScreenMirrorSender \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/ScreenMirror.xcarchive" \
+            archive 2>&1 | tee archive.log
+
+      - name: Export IPA
+        run: |
+          set -o pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/ScreenMirror.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            2>&1 | tee export.log
+
+      - name: Upload to TestFlight
+        env:
+          API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+        run: |
+          set -e
+          mkdir -p ~/private_keys
+          echo "$API_KEY_P8" > ~/private_keys/AuthKey_${API_KEY_ID}.p8
+          IPA_PATH=$(ls "$RUNNER_TEMP"/export/*.ipa | head -n 1)
+          xcrun altool --upload-app --type ios \
+            -f "$IPA_PATH" \
+            --apiKey "$API_KEY_ID" \
+            --apiIssuer "$API_ISSUER_ID"
