@@ -25,8 +25,14 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Show available Xcode versions
-        run: ls /Applications | grep Xcode
+      - name: Select the newest available Xcode
+        run: |
+          LATEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -n 1)
+          echo "Available Xcode installs:"
+          ls -d /Applications/Xcode_*.app 2>/dev/null
+          echo "Selecting: $LATEST"
+          sudo xcode-select -s "$LATEST"
+          xcodebuild -version
 
       - name: Resolve Swift Package dependencies
         run: |
@@ -47,8 +53,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build 2>&1 | tee build.log
 
-      - name: Publish log tail on failure
-        if: failure()
+      - name: Publish log tail
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
