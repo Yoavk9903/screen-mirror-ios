@@ -192,3 +192,25 @@ jobs:
             -authenticationKeyID "$API_KEY_ID" \
             -authenticationKeyIssuerID "$API_ISSUER_ID" \
             2>&1 | tee export.log
+
+      - name: Publish TestFlight log tail
+        if: always() && steps.check.outputs.skip != 'true'
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          CURL="curl -s --max-time 20"
+          { echo "=== archive.log (tail) ==="; tail -n 120 archive.log 2>/dev/null; \
+            echo "=== export.log (tail) ==="; tail -n 80 export.log 2>/dev/null; } > /tmp/tf.log
+          REPO="${{ github.repository }}"
+          P="ci-logs/testflight.log"
+          B64=$(base64 < /tmp/tf.log | tr -d '\n')
+          SHA=$($CURL -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$REPO/contents/$P?ref=ci-logs" | jq -r '.sha // empty')
+          if [ -n "$SHA" ]; then
+            jq -n --arg m "testflight log ${{ github.run_id }}" --arg c "$B64" --arg s "$SHA" '{message:$m,content:$c,branch:"ci-logs",sha:$s}' > /tmp/b.json
+          else
+            jq -n --arg m "testflight log ${{ github.run_id }}" --arg c "$B64" '{message:$m,content:$c,branch:"ci-logs"}' > /tmp/b.json
+          fi
+          $CURL -X PUT -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$REPO/contents/$P" -d @/tmp/b.json > /dev/null
+          exit 0
