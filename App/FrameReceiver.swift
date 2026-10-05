@@ -9,6 +9,12 @@ final class FrameReceiver {
     var onVideoFrame: ((DecodedVideoFrame) -> Void)?
     var onAudioFrame: ((Data) -> Void)?
 
+    /// Diagnostics shown in the app UI (TestFlight builds): how much data has arrived
+    /// from the broadcast extension. Written on the receiver queue, read loosely by the UI.
+    private(set) var videoFrameCount = 0
+    private(set) var audioFrameCount = 0
+    private(set) var audioByteCount = 0
+
     private var listener: NWListener?
     private var activeConnection: NWConnection?
     private let queue = DispatchQueue(label: "com.screenmirror.sender.frame-receiver")
@@ -67,9 +73,12 @@ final class FrameReceiver {
             switch kind {
             case .video:
                 if let frame = self.decodeVideo(data) {
+                    self.videoFrameCount += 1
                     self.onVideoFrame?(frame)
                 }
             case .audio:
+                self.audioFrameCount += 1
+                self.audioByteCount += data.count
                 self.onAudioFrame?(data)
             }
             self.readHeader(connection)

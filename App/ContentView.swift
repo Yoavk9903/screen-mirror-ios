@@ -37,6 +37,11 @@ struct ContentView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                         BroadcastPickerView()
+                        if !session.stats.isEmpty {
+                            Text(session.stats)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
 

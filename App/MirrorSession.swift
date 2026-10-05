@@ -11,6 +11,9 @@ import Foundation
 /// to start flowing in.
 final class MirrorSession: ObservableObject {
     @Published private(set) var isConnected = false
+    /// Short diagnostics line for TestFlight builds, e.g. "video 120 · audio 340 (65 KB)".
+    @Published private(set) var stats = ""
+    private var statsTimer: Timer?
 
     private let signaling = SignalingClient()
     private let frameReceiver = FrameReceiver()
@@ -33,6 +36,12 @@ final class MirrorSession: ObservableObject {
             self?.webRTCSender.push(audioFrame: pcm)
         }
 
+        statsTimer?.invalidate()
+        statsTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            let r = self.frameReceiver
+            self.stats = "וידאו \(r.videoFrameCount) · שמע \(r.audioFrameCount) (\(r.audioByteCount / 1024) KB)"
+        }
         keepAlive.start() // keep running after the user leaves the app to start mirroring
         frameReceiver.start()
         signaling.connect(host: tv.host, port: tv.port)
@@ -43,5 +52,7 @@ final class MirrorSession: ObservableObject {
         frameReceiver.stop()
         signaling.disconnect()
         keepAlive.stop()
+        statsTimer?.invalidate()
+        statsTimer = nil
     }
 }
