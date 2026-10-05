@@ -114,7 +114,7 @@ jobs:
     # (-allowProvisioningUpdates), so no .p12 / .mobileprovision files are needed.
     needs: build
     if: ${{ needs.build.result == 'success' }}
-    runs-on: macos-14
+    runs-on: macos-15 # App Store Connect now requires the iOS 26 SDK (Xcode 26+)
     env:
       APPLE_TEAM_ID: 2PW8CJAFRC
       API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
@@ -142,7 +142,7 @@ jobs:
       - name: Select the newest available Xcode
         if: steps.check.outputs.skip != 'true'
         run: |
-          LATEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -n 1)
+          LATEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vi beta | sort -V | tail -n 1)
           sudo xcode-select -s "$LATEST"
           xcodebuild -version
 
