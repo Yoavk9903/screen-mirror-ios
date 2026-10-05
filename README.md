@@ -50,9 +50,11 @@ to eventually run it on a real iPhone / submit to TestFlight, which does need:
   logic at runtime, so behavior (socket handshake, frame framing, WebRTC negotiation) is
   still unverified end-to-end. That needs a signed build via TestFlight (see below).
 - No TestFlight/signing wiring yet (needs the Apple Developer account first).
-- Video path copies raw BGRA frames across the process boundary uncompressed — fine for
-  getting a first working version, but worth revisiting (e.g. downscaling, or IOSurface
-  sharing instead of a byte copy) if CPU/battery usage turns out too high on-device.
+- Video crosses the process boundary as downscaled (<=1280px) packed NV12 at <=30fps.
+- KNOWN RISK: iOS suspends the main app shortly after the user leaves it to mirror other
+  apps, which would stop WebRTC. If real-device testing shows this, either keep the app alive
+  (audio background mode) or move WebRTC into the extension at low resolution.
+- Rotation mapping (RPVideoSampleOrientationKey -> WebRTC rotation) needs on-device checking.
 - `App/Info.plist` memory-pressure handling for the extension (reducing frame rate/
   resolution under pressure) isn't implemented yet — ReplayKit will kill the extension if
   it exceeds the memory limit, which would show up as broadcasting silently stopping.
