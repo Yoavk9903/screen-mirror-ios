@@ -112,8 +112,8 @@ jobs:
     #   Secret    APPSTORE_API_KEY_P8    - full text of the downloaded AuthKey_XXXX.p8 file
     # Signing uses Apple's cloud-managed certificates via the API key
     # (-allowProvisioningUpdates), so no .p12 / .mobileprovision files are needed.
-    needs: build
-    if: ${{ needs.build.result == 'success' }}
+    # Independent of the simulator `build` job on purpose: macOS runner capacity is sometimes
+    # tight, and an unavailable macos-14 pool must not block TestFlight uploads.
     runs-on: macos-15 # App Store Connect now requires the iOS 26 SDK (Xcode 26+)
     env:
       APPLE_TEAM_ID: 2PW8CJAFRC
