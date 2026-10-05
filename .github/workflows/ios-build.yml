@@ -106,43 +106,54 @@ jobs:
     # Archives a signed Release build and uploads it to TestFlight. Dormant until the Apple
     # Developer account is active and these are added under this repo's Settings -> Secrets
     # and variables -> Actions:
-    #   Variable  APPLE_TEAM_ID          - 10-character Team ID (developer.apple.com -> Membership)
+    # (The Team ID is not secret and lives in project.yml.)
     #   Secret    APPSTORE_API_KEY_ID    - App Store Connect API key ID
     #   Secret    APPSTORE_API_ISSUER_ID - App Store Connect API issuer ID
     #   Secret    APPSTORE_API_KEY_P8    - full text of the downloaded AuthKey_XXXX.p8 file
     # Signing uses Apple's cloud-managed certificates via the API key
     # (-allowProvisioningUpdates), so no .p12 / .mobileprovision files are needed.
     needs: build
-    if: ${{ needs.build.result == 'success' && vars.APPLE_TEAM_ID != '' }}
+    if: ${{ needs.build.result == 'success' }}
     runs-on: macos-14
     env:
-      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      APPLE_TEAM_ID: 2PW8CJAFRC
       API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
       API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
       API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check whether App Store Connect secrets are configured
+        id: check
+        run: |
+          if [ -z "$API_KEY_ID" ] || [ -z "$API_ISSUER_ID" ] || [ -z "$API_KEY_P8" ]; then
+            echo "No App Store Connect secrets yet - skipping TestFlight upload."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install XcodeGen
+        if: steps.check.outputs.skip != 'true'
         run: brew install xcodegen
 
-      - name: Generate Xcode project with real Team ID
-        run: |
-          sed -i '' "s/DEVELOPMENT_TEAM: \"\"/DEVELOPMENT_TEAM: \"${APPLE_TEAM_ID}\"/" project.yml
-          xcodegen generate
+      - name: Generate Xcode project
+        if: steps.check.outputs.skip != 'true'
+        run: xcodegen generate
 
       - name: Select the newest available Xcode
+        if: steps.check.outputs.skip != 'true'
         run: |
           LATEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -n 1)
           sudo xcode-select -s "$LATEST"
           xcodebuild -version
 
       - name: Write App Store Connect API key
+        if: steps.check.outputs.skip != 'true'
         run: |
           mkdir -p ~/private_keys
           echo "$API_KEY_P8" > ~/private_keys/AuthKey_${API_KEY_ID}.p8
 
       - name: Archive (signed)
+        if: steps.check.outputs.skip != 'true'
         run: |
           set -o pipefail
           xcodebuild -project ScreenMirror.xcodeproj \
@@ -157,6 +168,7 @@ jobs:
             archive 2>&1 | tee archive.log
 
       - name: Export and upload to TestFlight
+        if: steps.check.outputs.skip != 'true'
         run: |
           set -o pipefail
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST

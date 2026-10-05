@@ -7,7 +7,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    DEVELOPMENT_TEAM: ""   # filled in once we have an Apple Developer Team ID
+    DEVELOPMENT_TEAM: "2PW8CJAFRC"   # Apple Developer Team ID (not secret)
     CODE_SIGN_STYLE: Automatic
 
 targets:
