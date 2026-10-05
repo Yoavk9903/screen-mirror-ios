@@ -107,12 +107,12 @@ ExecuteExternalTool /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/X
 
 ExecuteExternalTool /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
 
-Build description signature: 6c5463e3c73285a7c1bdb2cc50720520
-Build description path: /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/XCBuildData/6c5463e3c73285a7c1bdb2cc50720520.xcbuilddata
-/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Provisioning profile "iOS Team Provisioning Profile: com.screenmirror.sender" doesn't match the entitlements file's value for the com.apple.security.application-groups entitlement. (in target 'ScreenMirrorSender' from project 'ScreenMirror')
-note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'ScreenMirrorSender' from project 'ScreenMirror')
+Build description signature: d3a36d397f03c1cc6ffefd60c11a025c
+Build description path: /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/XCBuildData/d3a36d397f03c1cc6ffefd60c11a025c.xcbuilddata
 /Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Provisioning profile "iOS Team Provisioning Profile: com.screenmirror.sender.BroadcastExtension" doesn't match the entitlements file's value for the com.apple.security.application-groups entitlement. (in target 'BroadcastExtension' from project 'ScreenMirror')
 note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'BroadcastExtension' from project 'ScreenMirror')
+/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Provisioning profile "iOS Team Provisioning Profile: com.screenmirror.sender" doesn't match the entitlements file's value for the com.apple.security.application-groups entitlement. (in target 'ScreenMirrorSender' from project 'ScreenMirror')
+note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'ScreenMirrorSender' from project 'ScreenMirror')
 ** ARCHIVE FAILED **
 
 
