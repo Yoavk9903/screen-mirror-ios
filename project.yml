@@ -27,6 +27,7 @@ targets:
         NSBonjourServices:
           - _screenmirror._tcp
         NSLocalNetworkUsageDescription: "האפליקציה מחפשת מכשירי טלוויזיה ברשת הביתית שלך כדי לשדר אליהם את המסך."
+        NSCameraUsageDescription: "האפליקציה אינה משתמשת במצלמה; ההרשאה מוזכרת רק בגלל ספריית השידור."
         NSMicrophoneUsageDescription: "נדרש כדי לשדר קול מהמכשיר, במידת הצורך."
         ITSAppUsesNonExemptEncryption: false
     entitlements:

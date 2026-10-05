@@ -206,6 +206,7 @@ jobs:
             -authenticationKeyPath ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
             -authenticationKeyID "$API_KEY_ID" \
             -authenticationKeyIssuerID "$API_ISSUER_ID" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             archive 2>&1 | tee archive.log
 
       - name: Export and upload to TestFlight
