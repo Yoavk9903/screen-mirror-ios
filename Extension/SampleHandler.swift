@@ -1,6 +1,8 @@
 import ReplayKit
 import Network
 import CoreMedia
+import ImageIO
+import QuartzCore
 
 /// Runs inside the system's Broadcast Upload Extension process, which iOS limits to
 /// ~50MB of memory — too tight for a full WebRTC stack. So this file does the minimum
@@ -12,6 +14,13 @@ import CoreMedia
 final class SampleHandler: RPBroadcastSampleHandler {
     private var connection: NWConnection?
     private let queue = DispatchQueue(label: "com.screenmirror.sender.broadcast-forwarder")
+
+    // The extension is capped at ~50MB, so never let video frames pile up: at most 2 frames
+    // may be waiting to be written to the socket, and we cap the rate at ~30fps. Excess
+    // frames are simply dropped (the TV just sees a slightly lower frame rate).
+    private let inFlightVideo = DispatchSemaphore(value: 2)
+    private var lastVideoTime: CFTimeInterval = 0
+    private let minVideoInterval: CFTimeInterval = 1.0 / 30.0
 
     override func broadcastStarted(withSetupInfo setupInfo: [String: NSObject]?) {
         let endpoint = NWEndpoint.unix(path: AppGroup.socketPath)
@@ -35,10 +44,21 @@ final class SampleHandler: RPBroadcastSampleHandler {
 
         switch sampleBufferType {
         case .video:
+            let now = CACurrentMediaTime()
+            guard now - lastVideoTime >= minVideoInterval else { return }
             guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-            let frame = FrameTransport.makeVideoFrame(pixelBuffer: pixelBuffer)
-            guard !frame.isEmpty else { return }
-            connection.send(content: frame, completion: .contentProcessed { _ in })
+            guard inFlightVideo.wait(timeout: .now()) == .success else { return } // backed up: drop
+            let frame = FrameTransport.makeVideoFrame(
+                pixelBuffer: pixelBuffer,
+                rotationDegrees: Self.rotationDegrees(for: sampleBuffer))
+            guard !frame.isEmpty else {
+                inFlightVideo.signal()
+                return
+            }
+            lastVideoTime = now
+            connection.send(content: frame, completion: .contentProcessed { [inFlightVideo] _ in
+                inFlightVideo.signal()
+            })
 
         case .audioApp:
             // System/app audio only (matches the Android sender, which also captures
@@ -53,6 +73,23 @@ final class SampleHandler: RPBroadcastSampleHandler {
 
         @unknown default:
             break
+        }
+    }
+
+    /// ReplayKit always delivers the buffer in the phone's native portrait layout and tags
+    /// the real orientation on the sample; this maps it to the rotation WebRTC needs (and
+    /// that the TV's renderer then applies). Mapping still to be verified on a real device.
+    private static func rotationDegrees(for sampleBuffer: CMSampleBuffer) -> Int {
+        guard let raw = CMGetAttachment(sampleBuffer,
+                                        key: RPVideoSampleOrientationKey as CFString,
+                                        attachmentModeOut: nil) as? NSNumber,
+              let orientation = CGImagePropertyOrientation(rawValue: raw.uint32Value)
+        else { return 0 }
+        switch orientation {
+        case .left, .leftMirrored: return 90
+        case .down, .downMirrored: return 180
+        case .right, .rightMirrored: return 270
+        default: return 0
         }
     }
 }

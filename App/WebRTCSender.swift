@@ -71,7 +71,7 @@ final class WebRTCSender: NSObject {
 
             let rtcBuffer = RTCCVPixelBuffer(pixelBuffer: pixelBuffer)
             let timestampNs = Int64(DispatchTime.now().uptimeNanoseconds)
-            let rtcFrame = RTCVideoFrame(buffer: rtcBuffer, rotation: ._0, timeStampNs: timestampNs)
+            let rtcFrame = RTCVideoFrame(buffer: rtcBuffer, rotation: Self.rtcRotation(frame.rotationDegrees), timeStampNs: timestampNs)
             videoSource.capturer(RTCVideoCapturer(), didCapture: rtcFrame)
         }
     }
@@ -80,28 +80,45 @@ final class WebRTCSender: NSObject {
         signaling.sendAudioFrame(pcm)
     }
 
+    /// Rebuilds an NV12 CVPixelBuffer from the tightly packed planes sent by the extension.
     private static func makePixelBuffer(from frame: DecodedVideoFrame) -> CVPixelBuffer? {
         var pixelBuffer: CVPixelBuffer?
-        let attrs: [CFString: Any] = [
-            kCVPixelBufferIOSurfacePropertiesKey: [:],
-        ]
-        let status = CVPixelBufferCreate(
-            kCFAllocatorDefault,
-            frame.width,
-            frame.height,
-            kCVPixelFormatType_32BGRA,
-            attrs as CFDictionary,
-            &pixelBuffer
-        )
+        let format = frame.isFullRange
+            ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+            : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        let attrs: [CFString: Any] = [kCVPixelBufferIOSurfacePropertiesKey: [:]]
+        let status = CVPixelBufferCreate(kCFAllocatorDefault, frame.width, frame.height,
+                                         format, attrs as CFDictionary, &pixelBuffer)
         guard status == kCVReturnSuccess, let buffer = pixelBuffer else { return nil }
 
         CVPixelBufferLockBaseAddress(buffer, [])
         defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
-        guard let dest = CVPixelBufferGetBaseAddress(buffer) else { return nil }
+
+        let ySize = frame.width * frame.height
         frame.pixelBytes.withUnsafeBytes { raw in
-            memcpy(dest, raw.baseAddress, min(frame.pixelBytes.count, CVPixelBufferGetDataSize(buffer)))
+            guard let src = raw.baseAddress else { return }
+            // Copy row by row: the destination planes may have padding (bytesPerRow > width).
+            for plane in 0..<2 {
+                guard let dest = CVPixelBufferGetBaseAddressOfPlane(buffer, plane) else { return }
+                let rows = CVPixelBufferGetHeightOfPlane(buffer, plane)
+                let destStride = CVPixelBufferGetBytesPerRowOfPlane(buffer, plane)
+                let srcStride = frame.width // tightly packed in both planes
+                let planeStart = plane == 0 ? src : src + ySize
+                for row in 0..<rows {
+                    memcpy(dest + row * destStride, planeStart + row * srcStride, srcStride)
+                }
+            }
         }
         return buffer
+    }
+
+    private static func rtcRotation(_ degrees: Int) -> RTCVideoRotation {
+        switch degrees {
+        case 90: return ._90
+        case 180: return ._180
+        case 270: return ._270
+        default: return ._0
+        }
     }
 
     private func handleAnswer(sdp: String) {

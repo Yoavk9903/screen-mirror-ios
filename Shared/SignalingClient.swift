@@ -27,16 +27,26 @@ final class SignalingClient: NSObject, URLSessionWebSocketDelegate {
 
     func connect(host: String, port: Int) {
         session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        let url = URL(string: "ws://\(host):\(port)")!
+        let hostPart = host.contains(":") ? "[\(host)]" : host // IPv6 literals need brackets
+        guard let url = URL(string: "ws://\(hostPart):\(port)") else {
+            onDisconnected?()
+            return
+        }
         task = session.webSocketTask(with: url)
         task?.resume()
         listen()
     }
 
     func disconnect() {
-        sendJSON(["type": "bye"])
-        task?.cancel(with: .goingAway, reason: nil)
+        // Cancel only after the "bye" has actually been written, otherwise it is lost.
+        let closing = task
         task = nil
+        if let data = try? JSONSerialization.data(withJSONObject: ["type": "bye"]),
+           let text = String(data: data, encoding: .utf8) {
+            closing?.send(.string(text)) { _ in closing?.cancel(with: .goingAway, reason: nil) }
+        } else {
+            closing?.cancel(with: .goingAway, reason: nil)
+        }
     }
 
     func sendOffer(sdp: String) {
@@ -47,7 +57,7 @@ final class SignalingClient: NSObject, URLSessionWebSocketDelegate {
         sendJSON([
             "type": "ice",
             "candidate": candidate,
-            "sdpMid": sdpMid as Any,
+            "sdpMid": sdpMid ?? NSNull(),
             "sdpMLineIndex": sdpMLineIndex
         ])
     }

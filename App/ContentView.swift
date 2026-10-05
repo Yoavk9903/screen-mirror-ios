@@ -33,7 +33,7 @@ struct ContentView: View {
 
                 if selectedTv != nil {
                     VStack(spacing: 8) {
-                        Text("לחצי על הכפתור כדי להתחיל לשדר את המסך")
+                        Text("לחץ על הכפתור כדי להתחיל לשדר את המסך")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                         BroadcastPickerView()

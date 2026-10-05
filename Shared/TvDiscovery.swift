@@ -50,7 +50,13 @@ final class TvDiscovery: ObservableObject {
 
     private func resolve(result: NWBrowser.Result, name: String) {
         if resolvers[name] != nil { return }
-        let connection = NWConnection(to: result.endpoint, using: .tcp)
+        // Force IPv4: a link-local IPv6 address loses its interface scope once turned into a
+        // string, and the resulting ws:// URL then can't be reached.
+        let params = NWParameters.tcp
+        if let ip = params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            ip.version = .v4
+        }
+        let connection = NWConnection(to: result.endpoint, using: params)
         resolvers[name] = connection
 
         connection.stateUpdateHandler = { [weak self] state in

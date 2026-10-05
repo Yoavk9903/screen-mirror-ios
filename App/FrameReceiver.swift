@@ -52,7 +52,7 @@ final class FrameReceiver {
             }
             let kindByte = data[data.startIndex]
             let lengthBytes = data.subdata(in: (data.startIndex + 1)..<(data.startIndex + 5))
-            let length = lengthBytes.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+            let length = lengthBytes.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self).bigEndian }
             guard let kind = FrameKind(rawValue: kindByte) else {
                 self.readHeader(connection)
                 return
@@ -77,11 +77,20 @@ final class FrameReceiver {
     }
 
     private func decodeVideo(_ payload: Data) -> DecodedVideoFrame? {
-        guard payload.count > 12 else { return nil }
-        let width = Int(payload.withUnsafeBytes { $0.load(fromByteOffset: 0, as: UInt32.self).bigEndian })
-        let height = Int(payload.withUnsafeBytes { $0.load(fromByteOffset: 4, as: UInt32.self).bigEndian })
-        let bytesPerRow = Int(payload.withUnsafeBytes { $0.load(fromByteOffset: 8, as: UInt32.self).bigEndian })
-        let pixelBytes = payload.subdata(in: (payload.startIndex + 12)..<payload.endIndex)
-        return DecodedVideoFrame(width: width, height: height, bytesPerRow: bytesPerRow, pixelBytes: pixelBytes)
+        let headerSize = FrameTransport.videoHeaderSize
+        guard payload.count > headerSize else { return nil }
+        func field(_ offset: Int) -> Int {
+            Int(payload.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: offset, as: UInt32.self).bigEndian })
+        }
+        let width = field(0)
+        let height = field(4)
+        let isFullRange = field(8) != 0
+        let rotation = field(12)
+        guard width > 0, height > 0, width % 2 == 0, height % 2 == 0 else { return nil }
+        let expected = width * height + width * (height / 2)
+        guard payload.count - headerSize == expected else { return nil }
+        let pixelBytes = payload.subdata(in: (payload.startIndex + headerSize)..<payload.endIndex)
+        return DecodedVideoFrame(width: width, height: height, isFullRange: isFullRange,
+                                 rotationDegrees: rotation, pixelBytes: pixelBytes)
     }
 }
