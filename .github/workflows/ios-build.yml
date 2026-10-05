@@ -152,7 +152,7 @@ jobs:
           mkdir -p ~/private_keys
           echo "$API_KEY_P8" > ~/private_keys/AuthKey_${API_KEY_ID}.p8
 
-      - name: Revoke stale Apple Development certificates
+      - name: Prepare signing (revoke stale certificates, ensure a device exists)
         if: steps.check.outputs.skip != 'true'
         run: |
           # Every CI run is a brand-new Mac, so the private key of any development
@@ -166,8 +166,11 @@ jobs:
           token = jwt.encode({"iss": os.environ["API_ISSUER_ID"], "iat": now, "exp": now + 600,
                               "aud": "appstoreconnect-v1"}, key, algorithm="ES256",
                              headers={"kid": os.environ["API_KEY_ID"]})
-          def call(method, url):
-              req = urllib.request.Request(url, method=method, headers={"Authorization": f"Bearer {token}"})
+          def call(method, url, payload=None):
+              data = json.dumps(payload).encode() if payload else None
+              headers = {"Authorization": f"Bearer {token}"}
+              if data: headers["Content-Type"] = "application/json"
+              req = urllib.request.Request(url, data=data, method=method, headers=headers)
               with urllib.request.urlopen(req) as r:
                   body = r.read()
                   return json.loads(body) if body else {}
@@ -178,6 +181,16 @@ jobs:
               if kind in ("DEVELOPMENT", "IOS_DEVELOPMENT"):
                   call("DELETE", f"https://api.appstoreconnect.apple.com/v1/certificates/{c['id']}")
                   print("  revoked")
+          # Xcode's archive step needs at least one registered device to build a development
+          # profile, even though TestFlight itself doesn't. Register a placeholder if none.
+          devices = call("GET", "https://api.appstoreconnect.apple.com/v1/devices?limit=5")["data"]
+          print("registered devices:", len(devices))
+          if not devices:
+              call("POST", "https://api.appstoreconnect.apple.com/v1/devices", {"data": {
+                  "type": "devices",
+                  "attributes": {"name": "CI placeholder", "platform": "IOS",
+                                 "udid": "00008030-001C2D3E4F5A802E"}}})
+              print("registered placeholder device")
           PY
 
       - name: Archive (signed)
