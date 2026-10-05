@@ -1,7 +1,7 @@
 === archive.log (tail) ===
-                          (e696d823-c538-42e2-8534-ff25d31c159f)
+                          (e4285a79-9c77-4180-ba07-f5410a00a63f)
     
-    /usr/bin/codesign --force --sign 234AA518FAFAAF66E29D8C01943BCFC6AED2307C --entitlements /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/BroadcastExtension.build/BroadcastExtension.appex.xcent --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/BroadcastExtension.appex
+    /usr/bin/codesign --force --sign 7046DD05B0AE3D6E90CFFFCDDC16BECAA302E637 --entitlements /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/BroadcastExtension.build/BroadcastExtension.appex.xcent --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/BroadcastExtension.appex
 
 RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/BroadcastExtension.appex (in target 'BroadcastExtension' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
@@ -19,11 +19,11 @@ Copy /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmccz
 CodeSign /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks/WebRTC.framework (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
     
-    Signing Identity:     "Apple Development: Created via API (A3DG9NRQ7L)"
+    Signing Identity:     "Apple Development: Created via API (4SDP9N5786)"
     Provisioning Profile: "iOS Team Provisioning Profile: com.screenmirror.sender"
-                          (5b91de00-8e26-4d86-b86a-1c03c35c9b2e)
+                          (1a4ca265-103d-44f1-bb56-87ffbcb79af4)
     
-    /usr/bin/codesign --force --sign 234AA518FAFAAF66E29D8C01943BCFC6AED2307C --preserve-metadata\=identifier,entitlements,flags --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks/WebRTC.framework
+    /usr/bin/codesign --force --sign 7046DD05B0AE3D6E90CFFFCDDC16BECAA302E637 --preserve-metadata\=identifier,entitlements,flags --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks/WebRTC.framework
 
 SwiftDriverJobDiscovery normal arm64 Compiling AppGroup.swift, BroadcastPickerView.swift, ContentView.swift, FrameReceiver.swift, FrameTransport.swift, MirrorSession.swift, PCMConverter.swift, ScreenMirrorApp.swift, SignalingClient.swift, TvDiscovery.swift, WebRTCSender.swift (in target 'ScreenMirrorSender' from project 'ScreenMirror')
 
@@ -61,7 +61,7 @@ ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMir
 
 CopySwiftLibs /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
-    builtin-swiftStdLibTool --copy --verbose --sign 234AA518FAFAAF66E29D8C01943BCFC6AED2307C --scan-executable /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/ScreenMirrorSender --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/PlugIns --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/SystemExtensions --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Extensions --platform iphoneos --toolchain /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks --unsigned-destination /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/BuildProductsPath/SwiftSupport --strip-bitcode --strip-bitcode-tool /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/ScreenMirrorSender.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+    builtin-swiftStdLibTool --copy --verbose --sign 7046DD05B0AE3D6E90CFFFCDDC16BECAA302E637 --scan-executable /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/ScreenMirrorSender --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/PlugIns --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/SystemExtensions --scan-folder /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Extensions --platform iphoneos --toolchain /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Frameworks --unsigned-destination /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/BuildProductsPath/SwiftSupport --strip-bitcode --strip-bitcode-tool /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/ScreenMirrorSender.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
 
 ExtractAppIntentsMetadata (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
@@ -75,8 +75,8 @@ GenerateDSYMFile /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-
 AppIntentsSSUTraining (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
     /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Info.plist --temp-dir-path /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/ScreenMirrorSender.build/ssu --bundle-id com.screenmirror.sender --product-path /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app --extracted-metadata-path /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Metadata.appintents --deployment-postprocessing --archive-ssu-assets
-2026-10-05 13:46:09.171 appintentsnltrainingprocessor[3422:13602] Parsing options for appintentsnltrainingprocessor
-2026-10-05 13:46:09.172 appintentsnltrainingprocessor[3422:13602] No AppShortcuts found - Skipping.
+2026-10-05 13:59:08.439 appintentsnltrainingprocessor[3446:12556] Parsing options for appintentsnltrainingprocessor
+2026-10-05 13:59:08.440 appintentsnltrainingprocessor[3446:12556] No AppShortcuts found - Skipping.
 
 Strip /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/ScreenMirrorSender (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
@@ -93,15 +93,15 @@ SetMode u+w,go-w,a+rX /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMi
 CodeSign /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
     
-    Signing Identity:     "Apple Development: Created via API (A3DG9NRQ7L)"
+    Signing Identity:     "Apple Development: Created via API (4SDP9N5786)"
     Provisioning Profile: "iOS Team Provisioning Profile: com.screenmirror.sender"
-                          (5b91de00-8e26-4d86-b86a-1c03c35c9b2e)
+                          (1a4ca265-103d-44f1-bb56-87ffbcb79af4)
     
-    /usr/bin/codesign --force --sign 234AA518FAFAAF66E29D8C01943BCFC6AED2307C --entitlements /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/ScreenMirrorSender.build/ScreenMirrorSender.app.xcent --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app
+    /usr/bin/codesign --force --sign 7046DD05B0AE3D6E90CFFFCDDC16BECAA302E637 --entitlements /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/ScreenMirror.build/Release-iphoneos/ScreenMirrorSender.build/ScreenMirrorSender.app.xcent --generate-entitlement-der /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app
 
 ValidateEmbeddedBinary /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/PlugIns/BroadcastExtension.appex (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
-    /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/PlugIns/BroadcastExtension.appex -signing-cert 234AA518FAFAAF66E29D8C01943BCFC6AED2307C -info-plist-path /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Info.plist
+    /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/PlugIns/BroadcastExtension.appex -signing-cert 7046DD05B0AE3D6E90CFFFCDDC16BECAA302E637 -info-plist-path /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app/Info.plist
 
 RegisterExecutionPolicyException /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/InstallationBuildProductsLocation/Applications/ScreenMirrorSender.app (in target 'ScreenMirrorSender' from project 'ScreenMirror')
     cd /Users/runner/work/screen-mirror-ios/screen-mirror-ios
@@ -120,18 +120,26 @@ note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEV
 ** ARCHIVE SUCCEEDED **
 
 === export.log (tail) ===
-2026-10-05 13:46:12.013 xcodebuild[3561:14007] [MT] IDEDistribution: -[IDEDistributionLogging _createLoggingBundleAtPath:]: Created bundle at path "/var/folders/s6/5hzmn6lx4dz5nxs7k_0slzph0000gn/T/ScreenMirrorSender_2026-10-05_13-46-12.007.xcdistributionlogs".
-error: exportArchive Cloud signing permission error
+2026-10-05 13:59:11.506 xcodebuild[3464:12651] [MT] IDEDistribution: -[IDEDistributionLogging _createLoggingBundleAtPath:]: Created bundle at path "/var/folders/s6/5hzmn6lx4dz5nxs7k_0slzph0000gn/T/ScreenMirrorSender_2026-10-05_13-59-11.505.xcdistributionlogs".
+2026-10-05 13:59:26.750 xcodebuild[3464:12651] Starting upload
+2026-10-05 13:59:27.431 xcodebuild[3464:12665] Progress 0%: Making copy of ‘ScreenMirrorSender.ipa’…
+2026-10-05 13:59:27.432 xcodebuild[3464:12665] Progress 0%: Making copy of ‘ScreenMirrorSender.ipa’…
+2026-10-05 13:59:27.435 xcodebuild[3464:12653] Progress 0%: Preparing to upload ‘ScreenMirrorSender.ipa’…
+2026-10-05 13:59:27.470 xcodebuild[3464:12653] Progress 0%: Analyzing package…
+2026-10-05 13:59:34.698 xcodebuild[3464:12666] Progress 0%: Sending analysis to App Store Connect…
+2026-10-05 13:59:35.396 xcodebuild[3464:12666] Progress 0%: Waiting for App Store Connect analysis response…
+2026-10-05 13:59:39.352 xcodebuild[3464:12666] Progress 0%: Sending SPI analysis to App Store Connect…
+2026-10-05 13:59:39.981 xcodebuild[3464:12666] Progress 0%: Waiting for App Store Connect SPI analysis response…
+2026-10-05 13:59:53.016 xcodebuild[3464:12668] Progress 0%: Upload failed.
+Validation failed
+Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 6f8d068f-964a-4146-b561-88cd0d74e0ff)
+error: exportArchive Validation failed. Missing required icon file. The bundle does not contain an app icon for iPhone / iPod Touch of exactly '120x120' pixels, in .png format for iOS versions >= 10.0. To support older versions of iOS, the icon may be required in the bundle outside of an asset catalog. Make sure the Info.plist file includes appropriate entries referencing the file. See https://developer.apple.com/documentation/bundleresources/information_property_list/user_interface. (ID: 6f8d068f-964a-4146-b561-88cd0d74e0ff).
 
-error: exportArchive No profiles for 'com.screenmirror.sender.BroadcastExtension' were found
+error: exportArchive Validation failed. Missing Info.plist value. A value for the Info.plist key 'CFBundleIconName' is missing in the bundle 'com.screenmirror.sender'. Apps built with iOS 11 or later SDK must supply app icons in an asset catalog and must also provide a value for this Info.plist key. For more information see http://help.apple.com/xcode/mac/current/#/dev10510b1f7. (ID: 7d942654-2b4f-4dea-b12b-2d3497326804).
 
-error: exportArchive Cloud signing permission error
+error: exportArchive Validation failed. SDK version issue. This app was built with the iOS 18.2 SDK. All iOS and iPadOS apps must be built with the iOS 26 SDK or later, included in Xcode 26 or later, in order to be uploaded to App Store Connect or submitted for distribution. (ID: 4694bf20-2453-4763-a7c0-9fb76c317c75).
 
-error: exportArchive No profiles for 'com.screenmirror.sender' were found
-
-error: exportArchive Cloud signing permission error
-
-error: exportArchive No signing certificate "iOS Distribution" found
+warning: exportArchive Upload Symbols Failed. The archive did not include a dSYM for the WebRTC.framework with the UUIDs [4C4C44F1-5555-3144-A1DC-673CA60AD0E2]. Ensure that the archive's dSYM folder includes a DWARF file for WebRTC.framework with the expected UUIDs.
 
 ** EXPORT FAILED **
 
