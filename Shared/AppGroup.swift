@@ -5,7 +5,7 @@ import Foundation
 /// and must be registered on developer.apple.com under this Apple ID's team once real
 /// signing is set up (Xcode's "Automatic" signing can also create it on first build).
 enum AppGroup {
-    static let identifier = "group.com.screenmirror.shared"
+    static let identifier = "group.com.yoavk.screenmirror.shared"
 
     /// Local Unix-domain socket the main app listens on and the extension connects to,
     /// to forward captured video/audio frames. Living inside the App Group container

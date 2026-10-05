@@ -33,7 +33,7 @@ targets:
       path: App/ScreenMirrorSender.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.screenmirror.shared
+          - group.com.yoavk.screenmirror.shared
     dependencies:
       - target: BroadcastExtension
       - package: WebRTC
@@ -63,7 +63,7 @@ targets:
       path: Extension/BroadcastExtension.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.screenmirror.shared
+          - group.com.yoavk.screenmirror.shared
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.screenmirror.sender.BroadcastExtension
