@@ -152,6 +152,34 @@ jobs:
           mkdir -p ~/private_keys
           echo "$API_KEY_P8" > ~/private_keys/AuthKey_${API_KEY_ID}.p8
 
+      - name: Revoke stale Apple Development certificates
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          # Every CI run is a brand-new Mac, so the private key of any development
+          # certificate Xcode created in an earlier run is gone, and Xcode refuses to
+          # proceed ("private key is not installed"). Removing them lets it make a fresh one.
+          pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
+          python3 - <<'PY'
+          import os, time, json, urllib.request, jwt
+          key = open(os.path.expanduser(f"~/private_keys/AuthKey_{os.environ['API_KEY_ID']}.p8")).read()
+          now = int(time.time())
+          token = jwt.encode({"iss": os.environ["API_ISSUER_ID"], "iat": now, "exp": now + 600,
+                              "aud": "appstoreconnect-v1"}, key, algorithm="ES256",
+                             headers={"kid": os.environ["API_KEY_ID"]})
+          def call(method, url):
+              req = urllib.request.Request(url, method=method, headers={"Authorization": f"Bearer {token}"})
+              with urllib.request.urlopen(req) as r:
+                  body = r.read()
+                  return json.loads(body) if body else {}
+          certs = call("GET", "https://api.appstoreconnect.apple.com/v1/certificates?limit=200")["data"]
+          for c in certs:
+              kind = c["attributes"]["certificateType"]
+              print("found certificate", c["id"], kind, c["attributes"].get("name"))
+              if kind in ("DEVELOPMENT", "IOS_DEVELOPMENT"):
+                  call("DELETE", f"https://api.appstoreconnect.apple.com/v1/certificates/{c['id']}")
+                  print("  revoked")
+          PY
+
       - name: Archive (signed)
         if: steps.check.outputs.skip != 'true'
         run: |
