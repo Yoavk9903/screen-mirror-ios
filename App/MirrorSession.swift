@@ -14,6 +14,7 @@ final class MirrorSession: ObservableObject {
 
     private let signaling = SignalingClient()
     private let frameReceiver = FrameReceiver()
+    private let keepAlive = BackgroundKeepAlive()
     private lazy var webRTCSender = WebRTCSender(signaling: signaling)
 
     func connect(to tv: DiscoveredTv) {
@@ -32,6 +33,7 @@ final class MirrorSession: ObservableObject {
             self?.webRTCSender.push(audioFrame: pcm)
         }
 
+        keepAlive.start() // keep running after the user leaves the app to start mirroring
         frameReceiver.start()
         signaling.connect(host: tv.host, port: tv.port)
     }
@@ -40,5 +42,6 @@ final class MirrorSession: ObservableObject {
         webRTCSender.stop()
         frameReceiver.stop()
         signaling.disconnect()
+        keepAlive.stop()
     }
 }

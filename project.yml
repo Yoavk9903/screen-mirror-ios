@@ -24,6 +24,8 @@ targets:
         UILaunchStoryboardName: ""
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - audio
         NSBonjourServices:
           - _screenmirror._tcp
         NSLocalNetworkUsageDescription: "האפליקציה מחפשת מכשירי טלוויזיה ברשת הביתית שלך כדי לשדר אליהם את המסך."
