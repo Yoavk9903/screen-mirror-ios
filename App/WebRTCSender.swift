@@ -12,6 +12,7 @@ final class WebRTCSender: NSObject {
     private var peerConnection: RTCPeerConnection?
     private var videoSource: RTCVideoSource?
     private var videoCapturerQueue = DispatchQueue(label: "com.screenmirror.sender.video-feed")
+    private var lastFormat: (width: Int, height: Int)?
 
     init(signaling: SignalingClient) {
         RTCInitializeSSL()
@@ -41,7 +42,9 @@ final class WebRTCSender: NSObject {
         }
         peerConnection = pc
 
-        let source = factory.videoSource()
+        // Screen content, not a camera: tells WebRTC to keep the picture sharp and the
+        // exact size/shape of the phone screen instead of treating it like camera video.
+        let source = factory.videoSource(forScreenCast: true)
         videoSource = source
         let videoTrack = factory.videoTrack(with: source, trackId: "video0")
         pc.add(videoTrack, streamIds: ["stream0"])
@@ -68,6 +71,14 @@ final class WebRTCSender: NSObject {
         videoCapturerQueue.async { [weak self] in
             guard let self, let videoSource = self.videoSource else { return }
             guard let pixelBuffer = Self.makePixelBuffer(from: frame) else { return }
+
+            // Tell WebRTC's video adapter to pass frames through at exactly this size and
+            // shape (no cropping/re-framing to some default aspect ratio), and re-tell it
+            // whenever the phone rotates or the size changes.
+            if self.lastFormat?.width != frame.width || self.lastFormat?.height != frame.height {
+                videoSource.adaptOutputFormat(toWidth: Int32(frame.width), height: Int32(frame.height), fps: 30)
+                self.lastFormat = (frame.width, frame.height)
+            }
 
             let rtcBuffer = RTCCVPixelBuffer(pixelBuffer: pixelBuffer)
             let timestampNs = Int64(DispatchTime.now().uptimeNanoseconds)
