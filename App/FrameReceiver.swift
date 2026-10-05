@@ -14,6 +14,7 @@ final class FrameReceiver {
     private(set) var videoFrameCount = 0
     private(set) var audioFrameCount = 0
     private(set) var audioByteCount = 0
+    private(set) var lastFrameSize = ""
 
     private var listener: NWListener?
     private var activeConnection: NWConnection?
@@ -74,6 +75,7 @@ final class FrameReceiver {
             case .video:
                 if let frame = self.decodeVideo(data) {
                     self.videoFrameCount += 1
+                    self.lastFrameSize = "\(frame.width)x\(frame.height) r\(frame.rotationDegrees)"
                     self.onVideoFrame?(frame)
                 }
             case .audio:

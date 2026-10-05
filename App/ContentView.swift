@@ -37,6 +37,10 @@ struct ContentView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                         BroadcastPickerView()
+                        Text("טיפ: כבוי המסך עוצר את השידור. מומלץ להגדיר בהגדרות > תצוגה > נעילה אוטומטית: אף פעם.")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
                         if !session.stats.isEmpty {
                             Text(session.stats)
                                 .font(.caption2)
@@ -49,8 +53,14 @@ struct ContentView: View {
             }
             .padding()
             .navigationTitle("Screen Mirror")
-            .onAppear { discovery.start() }
-            .onDisappear { discovery.stop() }
+            .onAppear {
+                discovery.start()
+                UIApplication.shared.isIdleTimerDisabled = true
+            }
+            .onDisappear {
+                discovery.stop()
+                UIApplication.shared.isIdleTimerDisabled = false
+            }
         }
     }
 }

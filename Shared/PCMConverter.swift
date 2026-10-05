@@ -10,6 +10,11 @@ import AVFoundation
 /// (in practice it is often big-endian 16-bit stereo at 44.1kHz), so this handles int16 /
 /// float32, either byte order, interleaved or planar, any channel count and sample rate.
 enum PCMConverter {
+    // Resampler state carried across calls (processSampleBuffer is called serially).
+    private static var resamplerSourceRate: Double = 0
+    private static var resamplerPosition: Double = 0
+    private static var resamplerLastSample: Float = 0
+
     static func toMono16BitPCM(sampleBuffer: CMSampleBuffer) -> Data? {
         guard let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer),
               let asbdPtr = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)
@@ -97,22 +102,35 @@ enum PCMConverter {
             mono[frame] = sum / Float(channels)
         }
 
-        // Resample to 48kHz (linear interpolation) if needed.
+        // Resample to 48kHz (linear interpolation) if needed. This must be *continuous*
+        // across the small chunks ReplayKit delivers: restarting the interpolation (and
+        // dropping the leftover fraction of a sample) at every chunk boundary causes a
+        // click ~40 times a second, which sounds like harsh buzzing. So the position and the
+        // last sample of the previous chunk are carried over between calls.
         let targetRate = 48000.0
         var output = mono
         if abs(format.mSampleRate - targetRate) >= 1 {
-            let step = format.mSampleRate / targetRate
-            let outCount = Int(Double(frameCount) / step)
-            guard outCount > 0 else { return nil }
-            output = [Float](repeating: 0, count: outCount)
-            for i in 0..<outCount {
-                let position = Double(i) * step
-                let index = Int(position)
-                let fraction = Float(position - Double(index))
-                let a = mono[min(index, frameCount - 1)]
-                let b = mono[min(index + 1, frameCount - 1)]
-                output[i] = a + (b - a) * fraction
+            if resamplerSourceRate != format.mSampleRate {
+                resamplerSourceRate = format.mSampleRate
+                resamplerPosition = 0
+                resamplerLastSample = mono[0]
             }
+            let step = format.mSampleRate / targetRate
+            let n = frameCount
+            output = []
+            output.reserveCapacity(Int(Double(n) / step) + 2)
+            var pos = resamplerPosition
+            while pos < Double(n - 1) {
+                let i = Int(pos.rounded(.down))
+                let fraction = Float(pos - Double(i))
+                let a = i < 0 ? resamplerLastSample : mono[i]
+                let b = mono[i + 1]
+                output.append(a + (b - a) * fraction)
+                pos += step
+            }
+            resamplerPosition = pos - Double(n)
+            resamplerLastSample = mono[n - 1]
+            if output.isEmpty { return nil }
         }
 
         // To 16-bit little-endian (iOS devices are little-endian, so native == LE).

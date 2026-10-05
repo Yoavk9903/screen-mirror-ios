@@ -40,7 +40,7 @@ final class MirrorSession: ObservableObject {
         statsTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
             let r = self.frameReceiver
-            self.stats = "וידאו \(r.videoFrameCount) · שמע \(r.audioFrameCount) (\(r.audioByteCount / 1024) KB)"
+            self.stats = "וידאו \(r.videoFrameCount) (\(r.lastFrameSize)) · שמע \(r.audioFrameCount) (\(r.audioByteCount / 1024) KB)"
         }
         keepAlive.start() // keep running after the user leaves the app to start mirroring
         frameReceiver.start()
