@@ -1,4 +1,6 @@
 === archive.log (tail) ===
+{ platform:iOS Simulator, id:11EFB8C6-ED66-489F-A458-204D59C42F76, OS:17.4, name:iPad Pro 11-inch (M4) }
+{ platform:iOS Simulator, id:F89BCCFC-5701-4B88-A238-EE866AF4834F, OS:17.5, name:iPad Pro 11-inch (M4) }
 { platform:iOS Simulator, id:F89BCCFC-5701-4B88-A238-EE866AF4834F, OS:17.5, name:iPad Pro 11-inch (M4) }
 { platform:iOS Simulator, id:F9076D85-9C14-4ED2-93F6-E71E6F981F89, OS:18.1, name:iPad Pro 11-inch (M4) }
 { platform:iOS Simulator, id:F9076D85-9C14-4ED2-93F6-E71E6F981F89, OS:18.1, name:iPad Pro 11-inch (M4) }
@@ -105,14 +107,12 @@ ExecuteExternalTool /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/X
 
 ExecuteExternalTool /Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
 
-Build description signature: 0e383ff6302a5e898de273e20e510ce6
-Build description path: /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/XCBuildData/0e383ff6302a5e898de273e20e510ce6.xcbuilddata
-/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Communication with Apple failed: Your team has no devices from which to generate a provisioning profile. Connect a device to use or manually add device IDs in Certificates, Identifiers & Profiles. https://developer.apple.com/account/ (in target 'BroadcastExtension' from project 'ScreenMirror')
-/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: No profiles for 'com.screenmirror.sender.BroadcastExtension' were found: Xcode couldn't find any iOS App Development provisioning profiles matching 'com.screenmirror.sender.BroadcastExtension'. (in target 'BroadcastExtension' from project 'ScreenMirror')
-note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'BroadcastExtension' from project 'ScreenMirror')
-/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Communication with Apple failed: Your team has no devices from which to generate a provisioning profile. Connect a device to use or manually add device IDs in Certificates, Identifiers & Profiles. https://developer.apple.com/account/ (in target 'ScreenMirrorSender' from project 'ScreenMirror')
-/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: No profiles for 'com.screenmirror.sender' were found: Xcode couldn't find any iOS App Development provisioning profiles matching 'com.screenmirror.sender'. (in target 'ScreenMirrorSender' from project 'ScreenMirror')
+Build description signature: 6c5463e3c73285a7c1bdb2cc50720520
+Build description path: /Users/runner/Library/Developer/Xcode/DerivedData/ScreenMirror-cgsfxivjmcczdmfbesabpofggpgr/Build/Intermediates.noindex/ArchiveIntermediates/ScreenMirrorSender/IntermediateBuildFilesPath/XCBuildData/6c5463e3c73285a7c1bdb2cc50720520.xcbuilddata
+/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Provisioning profile "iOS Team Provisioning Profile: com.screenmirror.sender" doesn't match the entitlements file's value for the com.apple.security.application-groups entitlement. (in target 'ScreenMirrorSender' from project 'ScreenMirror')
 note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'ScreenMirrorSender' from project 'ScreenMirror')
+/Users/runner/work/screen-mirror-ios/screen-mirror-ios/ScreenMirror.xcodeproj: error: Provisioning profile "iOS Team Provisioning Profile: com.screenmirror.sender.BroadcastExtension" doesn't match the entitlements file's value for the com.apple.security.application-groups entitlement. (in target 'BroadcastExtension' from project 'ScreenMirror')
+note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'BroadcastExtension' from project 'ScreenMirror')
 ** ARCHIVE FAILED **
 
 
