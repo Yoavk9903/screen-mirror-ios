@@ -70,12 +70,16 @@ final class WebRTCSender: NSObject {
             let parameters = transceiver.sender.parameters
             for encoding in parameters.encodings {
                 if transceiver.mediaType == .video {
-                    encoding.maxBitrateBps = NSNumber(value: 8_000_000)
-                    encoding.minBitrateBps = NSNumber(value: 1_500_000)
+                    encoding.maxBitrateBps = NSNumber(value: 16_000_000)
+                    encoding.minBitrateBps = NSNumber(value: 4_000_000)
                     encoding.maxFramerate = NSNumber(value: 30)
                 } else if transceiver.mediaType == .audio {
                     encoding.maxBitrateBps = NSNumber(value: 128_000)
                 }
+            }
+            if transceiver.mediaType == .video {
+                // Screen text must stay sharp: reduce frame rate under pressure, never resolution.
+                parameters.degradationPreference = NSNumber(value: RTCDegradationPreference.maintainResolution.rawValue)
             }
             transceiver.sender.parameters = parameters
         }
