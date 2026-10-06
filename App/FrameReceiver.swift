@@ -135,11 +135,13 @@ final class FrameReceiver {
         let height = field(4)
         let isFullRange = field(8) != 0
         let rotation = field(12)
+        let micros = payload.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: 16, as: UInt64.self).bigEndian }
+        let captureTime = Double(micros) / 1_000_000
         guard width > 0, height > 0, width % 2 == 0, height % 2 == 0 else { return nil }
         let expected = width * height + width * (height / 2)
         guard payload.count - headerSize == expected else { return nil }
         let pixelBytes = payload.subdata(in: (payload.startIndex + headerSize)..<payload.endIndex)
         return DecodedVideoFrame(width: width, height: height, isFullRange: isFullRange,
-                                 rotationDegrees: rotation, pixelBytes: pixelBytes)
+                                 rotationDegrees: rotation, captureTime: captureTime, pixelBytes: pixelBytes)
     }
 }

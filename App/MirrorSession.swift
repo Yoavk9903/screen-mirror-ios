@@ -24,6 +24,7 @@ final class MirrorSession: ObservableObject {
     private var started = false
     private var statsTimer: Timer?
     private var lastAudioBytes = 0
+    private var lastDiagnostics = ""
 
     init() {
         frameReceiver.onBroadcastStarted = { [weak self] in
@@ -72,9 +73,10 @@ final class MirrorSession: ObservableObject {
             let r = self.frameReceiver
             let kbPerSecond = (r.audioByteCount - self.lastAudioBytes) / 1024
             self.lastAudioBytes = r.audioByteCount
+            if let d = self.currentSender()?.diagnostics, !d.isEmpty { self.lastDiagnostics = d }
             self.stats = r.videoFrameCount == 0 && r.audioFrameCount == 0
                 ? ""
-                : "video \(r.videoFrameCount) (\(r.lastFrameSize))\naudio \(r.audioFrameCount) (\(kbPerSecond) KB/s)\n\(r.lastInfo)"
+                : "video \(r.videoFrameCount) (\(r.lastFrameSize))\naudio \(r.audioFrameCount) (\(kbPerSecond) KB/s)\n\(self.lastDiagnostics)"
         }
     }
 

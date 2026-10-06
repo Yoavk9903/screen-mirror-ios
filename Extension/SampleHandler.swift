@@ -18,7 +18,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
     // The extension is capped at ~50MB, so never let video frames pile up: at most 2 frames
     // may be waiting to be written to the socket, and we cap the rate at ~30fps. Excess
     // frames are simply dropped (the TV just sees a slightly lower frame rate).
-    private let inFlightVideo = DispatchSemaphore(value: 2)
+    private let inFlightVideo = DispatchSemaphore(value: 1)
     // Scaling a full-screen frame takes a few ms; doing it on ReplayKit's callback thread would
     // delay (and make ReplayKit drop) audio buffers. So video work runs on its own queue, one
     // frame at a time, and frames that arrive while it is busy are skipped.
@@ -59,11 +59,13 @@ final class SampleHandler: RPBroadcastSampleHandler {
             }
             lastVideoTime = now
             let rotation = Self.rotationDegrees(for: sampleBuffer)
+            let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+            let captureTime = pts.isValid ? CMTimeGetSeconds(pts) : now
             videoQueue.async { [inFlightVideo, videoWork] in
                 guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
                     inFlightVideo.signal(); videoWork.signal(); return
                 }
-                let frame = FrameTransport.makeVideoFrame(pixelBuffer: pixelBuffer, rotationDegrees: rotation)
+                let frame = FrameTransport.makeVideoFrame(pixelBuffer: pixelBuffer, rotationDegrees: rotation, captureTime: captureTime)
                 videoWork.signal()
                 guard !frame.isEmpty else { inFlightVideo.signal(); return }
                 connection.send(content: frame, completion: .contentProcessed { _ in

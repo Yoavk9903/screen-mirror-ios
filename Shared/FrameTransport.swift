@@ -8,7 +8,7 @@ import Accelerate
 ///
 /// Frame = [1 byte kind][4 byte big-endian payload length][payload]
 ///
-/// Video payload = [4B width][4B height][4B isFullRange (0/1)][4B rotation degrees]
+/// Video payload = [4B width][4B height][4B isFullRange (0/1)][4B rotation degrees][8B capture time, microseconds]
 ///                 [Y plane: width*height bytes][CbCr plane: width*(height/2) bytes]
 ///   i.e. tightly packed NV12 (420 bi-planar) — ReplayKit delivers NV12, NOT BGRA, and it is
 ///   half the bytes of BGRA. Width/height are always even and already downscaled in the
@@ -23,7 +23,7 @@ enum FrameKind: UInt8 {
 }
 
 enum FrameTransport {
-    static let videoHeaderSize = 16
+    static let videoHeaderSize = 24
 
     /// Longest side of the frames sent to the TV. 1920 matches a full-HD TV on the long side while
     /// cutting the per-frame copy from ~9MB to ~3MB.
@@ -40,7 +40,7 @@ enum FrameTransport {
     /// Builds a complete framed video message from a ReplayKit NV12 CVPixelBuffer,
     /// downscaled so its longest side is at most `maxDimension`. Returns empty Data if the
     /// buffer isn't a format we understand (the caller then just skips the frame).
-    static func makeVideoFrame(pixelBuffer: CVPixelBuffer, rotationDegrees: Int) -> Data {
+    static func makeVideoFrame(pixelBuffer: CVPixelBuffer, rotationDegrees: Int, captureTime: Double) -> Data {
         let format = CVPixelBufferGetPixelFormatType(pixelBuffer)
         let isFullRange: Bool
         switch format {
@@ -80,6 +80,8 @@ enum FrameTransport {
             var be = value.bigEndian
             withUnsafeBytes(of: &be) { message.append(contentsOf: $0) }
         }
+        var timeBE = UInt64(max(0, captureTime) * 1_000_000).bigEndian
+        withUnsafeBytes(of: &timeBE) { message.append(contentsOf: $0) }
 
         var planes = Data(count: ySize + cSize)
         let ok: Bool = planes.withUnsafeMutableBytes { raw -> Bool in
@@ -134,6 +136,8 @@ struct DecodedVideoFrame {
     let height: Int
     let isFullRange: Bool
     let rotationDegrees: Int
+    /// Capture time (CACurrentMediaTime seconds, same clock in both processes).
+    let captureTime: Double
     /// Tightly packed: Y plane (width*height) followed by CbCr plane (width*height/2).
     let pixelBytes: Data
 }

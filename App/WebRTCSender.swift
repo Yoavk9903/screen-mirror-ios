@@ -2,6 +2,7 @@ import Foundation
 import WebRTC
 import CoreVideo
 import Accelerate
+import QuartzCore
 
 /// The iOS mirror of WebRtcSenderClient.kt on Android: creates one PeerConnection acting
 /// as the OFFERER, pushes locally-captured video frames into it, and sends system audio
@@ -80,6 +81,7 @@ final class WebRTCSender: NSObject {
         }
 
         audioPacer.start()
+        startDiagnostics()
 
         pc.offer(for: RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)) { [weak self] sdp, _ in
             guard let self, let sdp else { return }
@@ -89,6 +91,8 @@ final class WebRTCSender: NSObject {
     }
 
     func stop() {
+        statsTimer?.cancel()
+        statsTimer = nil
         audioPacer.stop()
         peerConnection?.close()
         peerConnection = nil
@@ -102,6 +106,49 @@ final class WebRTCSender: NSObject {
     /// already-negotiated PeerConnection.
     private let pendingLock = NSLock()
     private var pendingVideoFrames = 0
+
+    // Diagnostics (shown in the app while testing): where does the delay come from?
+    private var pipelineMs = 0.0 // phone screen -> handed to the WebRTC encoder
+    private var statsText = ""
+    private var statsTimer: DispatchSourceTimer?
+
+    var diagnostics: String {
+        pendingLock.lock(); defer { pendingLock.unlock() }
+        return statsText
+    }
+
+    private func startDiagnostics() {
+        let timer = DispatchSource.makeTimerSource(queue: videoCapturerQueue)
+        timer.schedule(deadline: .now() + 2, repeating: 2)
+        timer.setEventHandler { [weak self] in self?.refreshDiagnostics() }
+        timer.resume()
+        statsTimer = timer
+    }
+
+    private func refreshDiagnostics() {
+        peerConnection?.statistics { [weak self] report in
+            guard let self else { return }
+            var enc = "-", fps = "-", limit = "-", rtt = "-"
+            for stat in report.statistics.values {
+                let v = stat.values
+                if stat.type == "outbound-rtp", (v["kind"] as? String) == "video" {
+                    if let frames = (v["framesEncoded"] as? NSNumber)?.doubleValue, frames > 0,
+                       let total = (v["totalEncodeTime"] as? NSNumber)?.doubleValue {
+                        enc = String(format: "%.0f", total / frames * 1000)
+                    }
+                    if let f = (v["framesPerSecond"] as? NSNumber)?.doubleValue { fps = String(format: "%.0f", f) }
+                    if let l = v["qualityLimitationReason"] as? String { limit = l }
+                }
+                if stat.type == "candidate-pair", (v["state"] as? String) == "succeeded",
+                   let r = (v["currentRoundTripTime"] as? NSNumber)?.doubleValue {
+                    rtt = String(format: "%.0f", r * 1000)
+                }
+            }
+            self.pendingLock.lock()
+            self.statsText = String(format: "pipe %.0fms enc %@ms fps %@ rtt %@ms lim %@", self.pipelineMs, enc, fps, rtt, limit)
+            self.pendingLock.unlock()
+        }
+    }
 
     func push(videoFrame frame: DecodedVideoFrame) {
         // Never let frames pile up: if the previous one is still being processed, drop this
@@ -127,6 +174,10 @@ final class WebRTCSender: NSObject {
             let timestampNs = Int64(DispatchTime.now().uptimeNanoseconds)
             let rtcFrame = RTCVideoFrame(buffer: rtcBuffer, rotation: ._0, timeStampNs: timestampNs)
             videoSource.capturer(RTCVideoCapturer(), didCapture: rtcFrame)
+            let delayMs = (CACurrentMediaTime() - frame.captureTime) * 1000
+            self.pendingLock.lock()
+            self.pipelineMs = self.pipelineMs == 0 ? delayMs : self.pipelineMs * 0.9 + delayMs * 0.1
+            self.pendingLock.unlock()
         }
     }
 
