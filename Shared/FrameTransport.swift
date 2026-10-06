@@ -60,7 +60,13 @@ enum FrameTransport {
               let cBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1)
         else { return Data() }
 
-        let scale = min(1.0, Double(maxDimension) / Double(max(srcW, srcH)))
+        // The main app fits every frame into a 1920x1080 canvas, so there is no point sending
+        // more pixels than that box can show (after rotation). A portrait phone then costs
+        // ~0.8MB per frame instead of ~2.5MB, which keeps audio and video flowing smoothly.
+        let swapped = rotationDegrees == 90 || rotationDegrees == 270
+        let shownW = Double(swapped ? srcH : srcW)
+        let shownH = Double(swapped ? srcW : srcH)
+        let scale = min(1.0, 1920.0 / shownW, 1080.0 / shownH)
         let outW = max(2, (Int(Double(srcW) * scale) / 2) * 2)
         let outH = max(2, (Int(Double(srcH) * scale) / 2) * 2)
 

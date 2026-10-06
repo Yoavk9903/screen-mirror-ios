@@ -9,8 +9,8 @@ import Foundation
 final class AudioPacer {
     private let bytesPerMs = 96 // 48 kHz * 2 bytes * mono
     private let chunkMs = 20
-    private let prebufferMs = 150
-    private let maxBufferMs = 500
+    private let prebufferMs = 100
+    private let maxBufferMs = 300
 
     private let queue = DispatchQueue(label: "com.screenmirror.sender.audio-pacer")
     private var timer: DispatchSourceTimer?

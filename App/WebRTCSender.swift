@@ -72,8 +72,22 @@ final class WebRTCSender: NSObject {
     /// WebRTC's own video pipeline, which encodes it (hardware H.264, same as the
     /// Android sender's ScreenCapturerAndroid + WebRTC path) and sends it over the
     /// already-negotiated PeerConnection.
+    private let pendingLock = NSLock()
+    private var pendingVideoFrames = 0
+
     func push(videoFrame frame: DecodedVideoFrame) {
+        // Never let frames pile up: if the previous one is still being processed, drop this
+        // one. A queue of old frames is exactly what shows up as delay on the TV.
+        pendingLock.lock()
+        if pendingVideoFrames >= 1 { pendingLock.unlock(); return }
+        pendingVideoFrames += 1
+        pendingLock.unlock()
         videoCapturerQueue.async { [weak self] in
+            defer {
+                self?.pendingLock.lock()
+                self?.pendingVideoFrames -= 1
+                self?.pendingLock.unlock()
+            }
             guard let self, let videoSource = self.videoSource else { return }
             // Always send a fixed 16:9 Full-HD frame with the phone screen fitted inside it
             // (black bars where needed), whatever the phone's shape or orientation. The TV then
