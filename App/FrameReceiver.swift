@@ -19,6 +19,7 @@ final class FrameReceiver {
     private(set) var audioFrameCount = 0
     private(set) var audioByteCount = 0
     private(set) var lastFrameSize = ""
+    private(set) var lastInfo = ""
 
     private var listener: NWListener?
     private var activeConnection: NWConnection?
@@ -58,6 +59,7 @@ final class FrameReceiver {
         audioFrameCount = 0
         audioByteCount = 0
         lastFrameSize = ""
+        lastInfo = ""
         connection.stateUpdateHandler = { [weak self, weak connection] state in
             guard let self, let connection else { return }
             switch state {
@@ -112,6 +114,8 @@ final class FrameReceiver {
                     self.lastFrameSize = "\(frame.width)x\(frame.height) r\(frame.rotationDegrees)"
                     self.onVideoFrame?(frame)
                 }
+            case .info:
+                self.lastInfo = String(decoding: data, as: UTF8.self)
             case .audio:
                 self.audioFrameCount += 1
                 self.audioByteCount += data.count

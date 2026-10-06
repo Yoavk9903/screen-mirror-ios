@@ -19,6 +19,12 @@ final class SampleHandler: RPBroadcastSampleHandler {
     // may be waiting to be written to the socket, and we cap the rate at ~30fps. Excess
     // frames are simply dropped (the TV just sees a slightly lower frame rate).
     private let inFlightVideo = DispatchSemaphore(value: 2)
+    // Scaling a full-screen frame takes a few ms; doing it on ReplayKit's callback thread would
+    // delay (and make ReplayKit drop) audio buffers. So video work runs on its own queue, one
+    // frame at a time, and frames that arrive while it is busy are skipped.
+    private let videoWork = DispatchSemaphore(value: 1)
+    private let videoQueue = DispatchQueue(label: "com.screenmirror.sender.video-work", qos: .userInitiated)
+    private var audioBufferCount = 0
     private var lastVideoTime: CFTimeInterval = 0
     private let minVideoInterval: CFTimeInterval = 1.0 / 30.0
 
@@ -46,25 +52,35 @@ final class SampleHandler: RPBroadcastSampleHandler {
         case .video:
             let now = CACurrentMediaTime()
             guard now - lastVideoTime >= minVideoInterval else { return }
-            guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-            guard inFlightVideo.wait(timeout: .now()) == .success else { return } // backed up: drop
-            let frame = FrameTransport.makeVideoFrame(
-                pixelBuffer: pixelBuffer,
-                rotationDegrees: Self.rotationDegrees(for: sampleBuffer))
-            guard !frame.isEmpty else {
-                inFlightVideo.signal()
+            guard videoWork.wait(timeout: .now()) == .success else { return } // still busy: skip
+            guard inFlightVideo.wait(timeout: .now()) == .success else { // socket backed up: skip
+                videoWork.signal()
                 return
             }
             lastVideoTime = now
-            connection.send(content: frame, completion: .contentProcessed { [inFlightVideo] _ in
-                inFlightVideo.signal()
-            })
+            let rotation = Self.rotationDegrees(for: sampleBuffer)
+            videoQueue.async { [inFlightVideo, videoWork] in
+                guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+                    inFlightVideo.signal(); videoWork.signal(); return
+                }
+                let frame = FrameTransport.makeVideoFrame(pixelBuffer: pixelBuffer, rotationDegrees: rotation)
+                videoWork.signal()
+                guard !frame.isEmpty else { inFlightVideo.signal(); return }
+                connection.send(content: frame, completion: .contentProcessed { _ in
+                    inFlightVideo.signal()
+                })
+            }
 
         case .audioApp:
             // System/app audio only (matches the Android sender, which also captures
             // playback audio, not the microphone) — converted to 16-bit PCM mono 48kHz
             // to exactly match SystemAudioCapturer.kt / AudioPlayer.kt on the other end.
             guard let pcm = PCMConverter.toMono16BitPCM(sampleBuffer: sampleBuffer) else { return }
+            audioBufferCount += 1
+            if audioBufferCount % 50 == 1 { // now and then, tell the app what format we are getting
+                connection.send(content: FrameTransport.makeInfoFrame(PCMConverter.lastDescription),
+                                completion: .contentProcessed { _ in })
+            }
             let frame = FrameTransport.makeAudioFrame(pcm: pcm)
             connection.send(content: frame, completion: .contentProcessed { _ in })
 

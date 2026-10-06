@@ -74,7 +74,7 @@ final class MirrorSession: ObservableObject {
             self.lastAudioBytes = r.audioByteCount
             self.stats = r.videoFrameCount == 0 && r.audioFrameCount == 0
                 ? ""
-                : "וידאו \(r.videoFrameCount) (\(r.lastFrameSize)) · שמע \(r.audioFrameCount) (\(kbPerSecond) KB/s)"
+                : "video \(r.videoFrameCount) (\(r.lastFrameSize))\naudio \(r.audioFrameCount) (\(kbPerSecond) KB/s)\n\(r.lastInfo)"
         }
     }
 

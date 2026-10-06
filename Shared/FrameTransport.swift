@@ -18,6 +18,8 @@ import Accelerate
 enum FrameKind: UInt8 {
     case video = 1
     case audio = 2
+    /// UTF-8 diagnostic text from the extension (audio format etc.), shown in the app.
+    case info = 3
 }
 
 enum FrameTransport {
@@ -103,6 +105,13 @@ enum FrameTransport {
         guard ok else { return Data() }
 
         message.append(planes)
+        return message
+    }
+
+    static func makeInfoFrame(_ text: String) -> Data {
+        let bytes = Data(text.utf8)
+        var message = encodeHeader(kind: .info, payloadLength: bytes.count)
+        message.append(bytes)
         return message
     }
 

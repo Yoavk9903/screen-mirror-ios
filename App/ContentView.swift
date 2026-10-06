@@ -43,8 +43,10 @@ struct ContentView: View {
                             .multilineTextAlignment(.center)
                         if !session.stats.isEmpty {
                             Text(session.stats)
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.leading)
+                                .environment(\.layoutDirection, .leftToRight)
                         }
                     }
                 }

@@ -15,6 +15,10 @@ enum PCMConverter {
     private static var resamplerPosition: Double = 0
     private static var resamplerLastSample: Float = 0
 
+    /// Human-readable description of the most recent source format and signal level, for the
+    /// on-screen diagnostics (ReplayKit's audio format is not documented and varies).
+    private(set) static var lastDescription = ""
+
     static func toMono16BitPCM(sampleBuffer: CMSampleBuffer) -> Data? {
         guard let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer),
               let asbdPtr = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)
@@ -92,6 +96,7 @@ enum PCMConverter {
             }
         }
 
+        let flagsHex = String(format.mFormatFlags, radix: 16)
         // Downmix to mono.
         var mono = [Float](repeating: 0, count: frameCount)
         for frame in 0..<frameCount {
@@ -132,6 +137,9 @@ enum PCMConverter {
             resamplerLastSample = mono[n - 1]
             if output.isEmpty { return nil }
         }
+
+        let peak = mono.reduce(Float(0)) { max($0, abs($1)) }
+        lastDescription = "\(Int(format.mSampleRate))Hz ch\(channels) \(bitsPerChannel)b \(isFloat ? "float" : "int") \(isBigEndian ? "BE" : "LE") \(isPlanar ? "planar" : "inter") n\(frameCount) pk\(Int(peak * 100)) f0x\(flagsHex)"
 
         // To 16-bit little-endian (iOS devices are little-endian, so native == LE).
         var pcm = [Int16](repeating: 0, count: output.count)
