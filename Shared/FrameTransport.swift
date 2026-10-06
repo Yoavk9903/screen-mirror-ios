@@ -23,9 +23,9 @@ enum FrameKind: UInt8 {
 enum FrameTransport {
     static let videoHeaderSize = 16
 
-    /// Longest side of the frames sent to the TV. 1280 keeps a 1080x2340 phone screen
-    /// sharp enough on a TV while cutting the per-frame copy from ~9MB to ~1.4MB.
-    static let maxDimension = 1280
+    /// Longest side of the frames sent to the TV. 1920 matches a full-HD TV on the long side while
+    /// cutting the per-frame copy from ~9MB to ~3MB.
+    static let maxDimension = 1920
 
     static func encodeHeader(kind: FrameKind, payloadLength: Int) -> Data {
         var header = Data(capacity: 5)

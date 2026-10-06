@@ -8,6 +8,10 @@ import Network
 final class FrameReceiver {
     var onVideoFrame: ((DecodedVideoFrame) -> Void)?
     var onAudioFrame: ((Data) -> Void)?
+    /// Fired when the broadcast extension connects (the user pressed Start Broadcast) and when
+    /// that connection ends (Stop Broadcast, screen lock, extension killed).
+    var onBroadcastStarted: (() -> Void)?
+    var onBroadcastEnded: (() -> Void)?
 
     /// Diagnostics shown in the app UI (TestFlight builds): how much data has arrived
     /// from the broadcast extension. Written on the receiver queue, read loosely by the UI.
@@ -45,16 +49,42 @@ final class FrameReceiver {
     }
 
     private func accept(_ connection: NWConnection) {
-        activeConnection?.cancel()
+        if let old = activeConnection {
+            activeConnection = nil
+            old.cancel()
+        }
         activeConnection = connection
+        videoFrameCount = 0
+        audioFrameCount = 0
+        audioByteCount = 0
+        lastFrameSize = ""
+        connection.stateUpdateHandler = { [weak self, weak connection] state in
+            guard let self, let connection else { return }
+            switch state {
+            case .failed, .cancelled:
+                self.connectionEnded(connection)
+            default:
+                break
+            }
+        }
         connection.start(queue: queue)
         readHeader(connection)
+        onBroadcastStarted?()
+    }
+
+    /// Reports the end of a broadcast exactly once, and only for the *current* connection
+    /// (a replaced older connection being cancelled must not end the new broadcast).
+    private func connectionEnded(_ connection: NWConnection) {
+        guard connection === activeConnection else { return }
+        activeConnection = nil
+        onBroadcastEnded?()
     }
 
     private func readHeader(_ connection: NWConnection) {
         connection.receive(minimumIncompleteLength: 5, maximumLength: 5) { [weak self] data, _, isComplete, error in
-            guard let self, let data, data.count == 5, error == nil else {
-                if isComplete || error != nil { return }
+            guard let self else { return }
+            guard let data, data.count == 5, error == nil else {
+                if isComplete || error != nil { self.connectionEnded(connection) }
                 return
             }
             let kindByte = data[data.startIndex]
@@ -70,7 +100,11 @@ final class FrameReceiver {
 
     private func readPayload(_ connection: NWConnection, kind: FrameKind, length: Int) {
         connection.receive(minimumIncompleteLength: length, maximumLength: length) { [weak self] data, _, _, error in
-            guard let self, let data, error == nil else { return }
+            guard let self else { return }
+            guard let data, error == nil else {
+                self.connectionEnded(connection)
+                return
+            }
             switch kind {
             case .video:
                 if let frame = self.decodeVideo(data) {
