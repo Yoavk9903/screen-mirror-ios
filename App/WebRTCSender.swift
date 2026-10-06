@@ -14,13 +14,19 @@ final class WebRTCSender: NSObject {
     private var videoSource: RTCVideoSource?
     private var videoCapturerQueue = DispatchQueue(label: "com.screenmirror.sender.video-feed")
     private var canvasPools: [Bool: CVPixelBufferPool] = [:] // by isFullRange; videoCapturerQueue only
-    private lazy var audioPacer = AudioPacer { [weak self] chunk in self?.signaling.sendAudioFrame(chunk) }
+    private let audioDevice: ReplayAudioDevice
+    private var audioSource: RTCAudioSource?
+    private lazy var audioPacer = AudioPacer { [weak self] chunk in self?.audioDevice.deliver(chunk) }
 
     init(signaling: SignalingClient) {
         RTCInitializeSSL()
         let encoderFactory = RTCDefaultVideoEncoderFactory()
         let decoderFactory = RTCDefaultVideoDecoderFactory()
-        self.factory = RTCPeerConnectionFactory(encoderFactory: encoderFactory, decoderFactory: decoderFactory)
+        let device = ReplayAudioDevice()
+        self.audioDevice = device
+        self.factory = RTCPeerConnectionFactory(encoderFactory: encoderFactory,
+                                                decoderFactory: decoderFactory,
+                                                audioDevice: device)
         self.signaling = signaling
         super.init()
 
@@ -50,6 +56,28 @@ final class WebRTCSender: NSObject {
         videoSource = source
         let videoTrack = factory.videoTrack(with: source, trackId: "video0")
         pc.add(videoTrack, streamIds: ["stream0"])
+
+        // System audio travels as a real WebRTC audio track (Opus), fed by ReplayAudioDevice.
+        let audioSource = factory.audioSource(with: RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil))
+        self.audioSource = audioSource
+        let audioTrack = factory.audioTrack(with: audioSource, trackId: "audio0")
+        pc.add(audioTrack, streamIds: ["stream0"])
+
+        // Generous bitrate limits: this is a local Wi-Fi link, and the default caps are
+        // tuned for the open internet (blurry screen text, thin audio).
+        for transceiver in pc.transceivers {
+            let parameters = transceiver.sender.parameters
+            for encoding in parameters.encodings {
+                if transceiver.mediaType == .video {
+                    encoding.maxBitrateBps = NSNumber(value: 8_000_000)
+                    encoding.minBitrateBps = NSNumber(value: 1_500_000)
+                    encoding.maxFramerate = NSNumber(value: 30)
+                } else if transceiver.mediaType == .audio {
+                    encoding.maxBitrateBps = NSNumber(value: 128_000)
+                }
+            }
+            transceiver.sender.parameters = parameters
+        }
 
         audioPacer.start()
 
