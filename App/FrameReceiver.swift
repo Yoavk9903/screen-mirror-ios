@@ -25,6 +25,9 @@ final class FrameReceiver {
     private var activeConnection: NWConnection?
     private let queue = DispatchQueue(label: "com.screenmirror.sender.frame-receiver")
 
+    /// True while the broadcast extension is connected (a broadcast is running).
+    var isBroadcasting: Bool { queue.sync { activeConnection != nil } }
+
     func start() {
         let path = AppGroup.socketPath
         try? FileManager.default.removeItem(atPath: path) // stale socket from a previous run

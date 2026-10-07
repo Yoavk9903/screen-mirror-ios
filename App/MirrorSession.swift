@@ -25,6 +25,8 @@ final class MirrorSession: ObservableObject {
     private var statsTimer: Timer?
     private var lastAudioBytes = 0
     private var lastDiagnostics = ""
+    private var lastDisconnect = ""
+    private var reconnectScheduled = false
 
     init() {
         frameReceiver.onBroadcastStarted = { [weak self] in
@@ -76,8 +78,13 @@ final class MirrorSession: ObservableObject {
             if let d = self.currentSender()?.diagnostics, !d.isEmpty { self.lastDiagnostics = d }
             self.stats = r.videoFrameCount == 0 && r.audioFrameCount == 0
                 ? ""
-                : "video \(r.videoFrameCount) (\(r.lastFrameSize))\naudio \(r.audioFrameCount) (\(kbPerSecond) KB/s)\n\(self.lastDiagnostics)"
+                : "video \(r.videoFrameCount) (\(r.lastFrameSize))\naudio \(r.audioFrameCount) (\(kbPerSecond) KB/s)\n\(self.lastDiagnostics)\n\(self.disconnectNote())"
         }
+    }
+
+    private func disconnectNote() -> String {
+        lock.lock(); defer { lock.unlock() }
+        return lastDisconnect.isEmpty ? "" : "last drop: \(lastDisconnect)"
     }
 
     private func currentSender() -> WebRTCSender? {
@@ -94,12 +101,32 @@ final class MirrorSession: ObservableObject {
             DispatchQueue.main.async { self?.isConnected = true }
             newSender?.start()
         }
-        signaling.onDisconnected = { [weak self] in
+        signaling.onDisconnected = { [weak self, weak newSender, weak signaling] in
             DispatchQueue.main.async { self?.isConnected = false }
+            // The link to the TV dropped while the broadcast is still running (Wi-Fi hiccup,
+            // the app was paused for a moment, the TV app restarted): reconnect by itself.
+            self?.lifecycle.async {
+                guard let self, let newSender, self.currentSender() === newSender,
+                      self.frameReceiver.isBroadcasting else { return }
+                self.lock.lock(); self.lastDisconnect = signaling?.lastEvent ?? ""; self.lock.unlock()
+                self.scheduleReconnect(for: newSender)
+            }
         }
         self.signaling = signaling
         lock.lock(); sender = newSender; lock.unlock()
         signaling.connect(host: tv.host, port: tv.port)
+    }
+
+    private func scheduleReconnect(for failed: WebRTCSender) {
+        guard !reconnectScheduled else { return }
+        reconnectScheduled = true
+        lifecycle.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self else { return }
+            self.reconnectScheduled = false
+            guard self.currentSender() === failed, self.frameReceiver.isBroadcasting else { return }
+            self.endSession()
+            self.beginSession()
+        }
     }
 
     private func endSession() {

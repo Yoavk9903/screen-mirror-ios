@@ -22,6 +22,9 @@ final class SignalingClient: NSObject, URLSessionWebSocketDelegate {
     var onConnected: (() -> Void)?
     var onDisconnected: (() -> Void)?
 
+    /// Why the last connection ended (shown in the test stats).
+    private(set) var lastEvent = ""
+
     private var task: URLSessionWebSocketTask?
     private var session: URLSession!
 
@@ -76,7 +79,8 @@ final class SignalingClient: NSObject, URLSessionWebSocketDelegate {
         task?.receive { [weak self] result in
             guard let self else { return }
             switch result {
-            case .failure:
+            case .failure(let error):
+                self.lastEvent = "recv: \((error as NSError).domain) \((error as NSError).code)"
                 self.onDisconnected?()
                 return
             case .success(let message):
@@ -118,6 +122,14 @@ final class SignalingClient: NSObject, URLSessionWebSocketDelegate {
     }
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        lastEvent = "closed code \(closeCode.rawValue)"
+        onDisconnected?()
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error {
+            lastEvent = "failed: \((error as NSError).domain) \((error as NSError).code)"
+        }
         onDisconnected?()
     }
 }
