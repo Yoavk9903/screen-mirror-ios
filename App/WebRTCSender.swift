@@ -62,7 +62,7 @@ final class WebRTCSender: NSObject {
         let audioSource = factory.audioSource(with: RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil))
         self.audioSource = audioSource
         let audioTrack = factory.audioTrack(with: audioSource, trackId: "audio0")
-        pc.add(audioTrack, streamIds: ["stream0"])
+        pc.add(audioTrack, streamIds: ["audio-stream"]) // separate stream: picture is not held back to wait for the audio
 
         // Generous bitrate limits: this is a local Wi-Fi link, and the default caps are
         // tuned for the open internet (blurry screen text, thin audio).
